@@ -43,6 +43,6 @@ The log file contains payload data, prefixed with a time_t-like timestamp with m
 1611845402.130  flt:0,ont:60,ran:20,pan:-10,hea:263,ggc:200,alt:0,asl:33,gsp:0,bpv:16.80,cad:0,cud:0.11,rsi:100,
 ```
 
-`mqttplayer` can also replay BulletGCSS log files. These are characterised by a millisecond Unix epoch timestamp, a '|' spearator followed by the data.
+`mqttplayer` can also replay BulletGCSS log files. These are characterised by a millisecond Unix epoch timestamp, a '|' separator followed by the data.
 
 if the log contains no timestamp and separator, the contents are replayed at 1 second interval.
