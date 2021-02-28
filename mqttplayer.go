@@ -35,18 +35,6 @@ func NewTlsConfig(cafile string) (*tls.Config, string) {
 	}
 }
 
-var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-}
-
-var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Println("Connected")
-}
-
-var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	fmt.Printf("Connect lost: %v\n", err)
-}
-
 var qos = flag.Int("qos", 0, "The QoS for message publication")
 
 func publish(client mqtt.Client, topic string, msg string) {
@@ -62,14 +50,24 @@ func main() {
 	var cafile string
 	var user string
 	var passwd string
+	fast := false
+
+	var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
+		fmt.Println("Connected")
+	}
+
+	var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
+		fmt.Printf("Connect lost: %v\n", err)
+	}
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s -broker URI [-qos qos] file\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage of %s -broker URI [options] file\n", os.Args[0])
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\n")
 	}
 
 	flag.StringVar(&mqttopts, "broker", "", "Mqtt URI (mqtt://[user[:pass]@]broker[:port]/topic[?cafile=file])")
+	flag.BoolVar(&fast, "fast", false, "Speed up x10")
 
 	flag.Parse()
 	files := flag.Args()
@@ -141,7 +139,6 @@ func main() {
 	opts.SetClientID(clientid)
 	opts.SetUsername(user)
 	opts.SetPassword(passwd)
-	opts.SetDefaultPublishHandler(messagePubHandler)
 
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
@@ -153,33 +150,41 @@ func main() {
 
 	rfh, err := os.Open(files[0])
 	if err == nil {
-		lastt := 0.0
+		lastt := int64(0)
 		defer rfh.Close()
 		scanner := bufio.NewScanner(rfh)
 		for scanner.Scan() {
+			var tdiff time.Duration
 			line := scanner.Text()
 			if parts := strings.Split(line, "\t"); len(parts) == 2 {
-				toff, _ := strconv.ParseFloat(parts[0], 64)
+				tflt, _ := strconv.ParseFloat(parts[0], 64)
+				toff := int64(tflt * 1000)
 				publish(client, topic, parts[1])
-				if lastt != 0.0 {
-					tdiff := int64(1000.0 * (toff - lastt))
-					time.Sleep(time.Duration(tdiff) * time.Millisecond)
+				if lastt != 0 {
+					tdiff = time.Duration(toff-lastt) * time.Millisecond
 				}
 				lastt = toff
 			} else if parts := strings.Split(line, "|"); len(parts) == 2 {
-				tint, _ := strconv.ParseInt(parts[0], 10, 64)
-				toff := float64(tint) / 1000.0
+				if strings.HasPrefix(parts[1], "Connected") {
+					continue
+				}
+				toff, _ := strconv.ParseInt(parts[0], 10, 64)
 				publish(client, topic, parts[1])
-				if lastt != 0.0 {
-					tdiff := int64(1000.0 * (toff - lastt))
-					time.Sleep(time.Duration(tdiff) * time.Millisecond)
+				if lastt != 0 {
+					tdiff = time.Duration(toff-lastt) * time.Millisecond
 				}
 				lastt = toff
 			} else {
 				publish(client, topic, line)
 				if !strings.HasPrefix(line, "wpno") {
-					time.Sleep(1 * time.Second)
+					tdiff = time.Duration(1000) * time.Millisecond
 				}
+			}
+			if tdiff != 0 {
+				if fast {
+					tdiff /= 10
+				}
+				time.Sleep(tdiff)
 			}
 		}
 	} else {

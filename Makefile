@@ -1,13 +1,10 @@
 # Build statically to avoid libc version issues
 LDFLAGS = -s -w -extldflags -static
 
-all : mqttsub mqttplayer
+all : mqttsub mqttplayer mqttcap
 
-mqttsub : mqttsub.go
-	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o  mqttsub  mqttsub.go
-
-mqttplayer : mqttplayer.go
-	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o  mqttplayer  mqttplayer.go
+% : %.go
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $@  $<
 
 clean:
-	rm -f  mqttsub mqttplayer
+	rm -f  mqttsub mqttplayer mqttcap

@@ -4,27 +4,39 @@ Two applications are provided primarily to test the usage of the MQTT protocol a
 
 * **mqttsub** Subscribe to a MQTT service, display received data, optionally generate time-stamped log
 * **mqttplayer** Replay a MQTT log (from `mqttsub` or BulletGCSS) to a MQTT server, preserving message timing.
+* **mqttcap** Persistent subscription capture.
 
 ```
 $ mqttsub --help
 Usage of mqttsub -broker URI [options] ...
   -broker string
     	Mqtt URI (mqtt://[user[:pass]@]broker[:port]/topic[?cafile=file])
-  -clientid string
-    	A clientid for the connection (default "eeyore30")
   -log string
     	log file for messages
   -qos int
-    	The QoS to subscribe to messages at
+    	The QoS for message subscription
 ```
 
 ```
 $ mqttplayer --help
-Usage of mqttplayer -broker URI [-qos qos] file
+Usage of mqttplayer -broker URI [options] file
   -broker string
     	Mqtt URI (mqtt://[user[:pass]@]broker[:port]/topic[?cafile=file])
+  -fast
+    	Speed up x10
   -qos int
     	The QoS for message publication
+```
+
+```
+$ mqttcap --help
+Usage of mqttcap -broker URI [options] ...
+  -broker string
+    	Mqtt URI (mqtt://[user[:pass]@]broker[:port]/topic[?cafile=file])
+  -logdir string
+    	log directory for messages (default "/tmp")
+  -splittime int
+    	split time for logs (default 300)
 ```
 
 Note that the scheme (**mqtt**:// in the `--help` text) is interpreted as:
