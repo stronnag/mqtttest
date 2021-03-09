@@ -151,7 +151,7 @@ func main() {
 				if wfh, err = os.Create(fname); err != nil {
 					log.Fatal(err)
 				}
-				s := fmt.Sprintf("%s|Connected to %s - %s", et, broker, topic)
+				s := fmt.Sprintf("%d|Connected to %s - %s", et, broker, topic)
 				fmt.Fprintln(wfh, s)
 				fmt.Fprintln(os.Stderr, s)
 			}
