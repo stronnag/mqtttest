@@ -4,7 +4,7 @@ Two applications are provided primarily to test the usage of the MQTT protocol a
 
 * **mqttsub** Subscribe to a MQTT service, display received data, optionally generate time-stamped log
 * **mqttplayer** Replay a MQTT log (from `mqttsub` or BulletGCSS) to a MQTT server, preserving message timing.
-* **mqttcap** Persistent subscription capture.
+* **mqttcap** Persistent subscription capture. `mqttcap` can be left running in the background and can capture MQTT data to distinct files in `logdir` from the `broker` subscription.
 
 ```
 $ mqttsub --help
